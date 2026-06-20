@@ -154,6 +154,18 @@
     text-align:center; font:inherit; font-weight:600; font-variant-numeric:tabular-nums; -moz-appearance:textfield}
   .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none}
   .empty-cat{display:none; padding:22px 18px; color:var(--steel); font-size:14px}
+  .billback{display:flex; gap:9px; align-items:flex-start; margin:0 18px 4px; padding:11px 13px;
+    background:var(--hi-dim); border:1px solid var(--hi); border-radius:9px;
+    font-size:13px; color:var(--ink); line-height:1.4}
+  .billback b{font-weight:700}
+  .billback .bb-ic{flex:0 0 auto; font-weight:800; color:var(--hi)}
+  .deduct{padding:0 22px 6px}
+  .deduct-note{margin:0 0 10px; padding:11px 13px; background:var(--hi-dim); border:1px solid var(--hi);
+    border-radius:9px; font-size:13px; line-height:1.45}
+  .deduct-ack{display:flex; gap:10px; align-items:flex-start; font-size:14px; font-weight:600;
+    color:var(--ink); cursor:pointer; padding:2px}
+  .deduct-ack input{width:20px; height:20px; margin:1px 0 0; accent-color:var(--hi); flex:0 0 auto; cursor:pointer}
+  .deduct-ack.missing{color:var(--hi)}
   .checkout-cta{padding:18px; border-top:1px solid var(--line); display:flex; justify-content:flex-end}
   .checkout-cta button{background:var(--hi); color:#1b1e23; border:0; font-family:"Oswald";
     font-weight:700; text-transform:uppercase; letter-spacing:.05em; font-size:16px;
@@ -293,6 +305,7 @@
       </div>
     </div>
 
+    <div class="billback" id="billbackTop"></div>
     <div id="catalog"></div>
     <div class="empty-cat" id="emptyMsg">No supplies match that search. Clear it to see everything.</div>
     <div class="checkout-cta">
@@ -324,6 +337,11 @@
     <div class="modal-h"><h2>Review Order</h2><button class="x" id="closeBtn" aria-label="Close">✕</button></div>
     <div class="modal-body" id="reviewBody"></div>
     <div class="note-line" id="missNote"></div>
+    <div class="deduct" id="deductBox">
+      <p class="deduct-note" id="deductNote"></p>
+      <label class="deduct-ack"><input type="checkbox" id="ackChk">
+        <span id="ackLabel"></span></label>
+    </div>
     <div class="modal-foot">
       <button class="btn primary" id="submitBtn">Submit Order to POV</button>
       <button class="btn" id="emailBtn">Email backup</button>
@@ -340,9 +358,12 @@
    EDIT ME #1 — CONFIG
    ============================================================ */
 const CONFIG = {
-  logUrl:     "",                              // <-- PASTE your Google Sheet Web App URL here
-  orderEmail: "orders@povpreservation.com",   // backup: where emailed orders go
+  logUrl:     "https://script.google.com/macros/s/AKfycbwCIC9orsSq1kdVVnfj1blNjYAiY1d3KA7iNkGmmS2FC5_o-LHhzJWiqygUDFVfcQm_/exec",
+  orderEmail: "povpreservation@gmail.com",     // backup: where emailed orders go
   company:    "POV Preservation",
+  // ---- Chargeback / deduction wording (edit freely) ----
+  deductNotice:  "Supplies you order are billed back to you. Once POV approves the order, the total is automatically deducted from your next payment.",
+  deductConfirm: "I authorize POV Preservation to deduct this order total from my next payment.",
   freeShipThreshold: 300                        // per supplier
 };
 
@@ -681,6 +702,9 @@ function orderText(){
   });
   L.push(`ESTIMATED TOTAL: ${money(grand)}`);
   L.push(`(~ = estimated price, confirmed at order placement)`);
+  const acked = document.getElementById("ackChk").checked;
+  L.push("");
+  L.push(`BILL-BACK AUTHORIZED: ${acked ? "YES — vendor authorized deduction of "+money(grand)+" from next payment" : "NO"}`);
   return L.join("\n");
 }
 
@@ -746,8 +770,14 @@ function openReview(){
   if(totals().count===0){ toast("Add some supplies first"); return; }
   currentOrderId = newOrderId();
   const b=document.getElementById("submitBtn"); b.disabled=false; b.textContent="Submit Order to POV";
+  const ack=document.getElementById("ackChk"); ack.checked=false;
+  document.querySelector(".deduct-ack").classList.remove("missing");
+  document.getElementById("deductBox").style.display="block";
   buildReview(); overlay.classList.add("open");
 }
+document.getElementById("ackChk").addEventListener("change", e=>{
+  if(e.target.checked) document.querySelector(".deduct-ack").classList.remove("missing");
+});
 document.getElementById("reviewBtn").addEventListener("click", openReview);
 document.getElementById("reviewBtn2").addEventListener("click", openReview);
 document.getElementById("closeBtn").addEventListener("click", ()=> overlay.classList.remove("open"));
@@ -765,10 +795,19 @@ function buildPayload(){
     mfsSubtotal:(bySup.MFS?bySup.MFS.sub:0).toFixed(2),
     hgsSubtotal:(bySup.HGS?bySup.HGS.sub:0).toFixed(2),
     total:grand.toFixed(2),
+    authorized: document.getElementById("ackChk").checked ? "YES" : "NO",
     items:orderText()
   };
 }
+// returns true if the deduction box is unchecked (blocks sending)
+function ackMissing(){
+  if(document.getElementById("ackChk").checked) return false;
+  document.querySelector(".deduct-ack").classList.add("missing");
+  toast("Check the box to authorize the deduction");
+  return true;
+}
 function showConfirmation(){
+  document.getElementById("deductBox").style.display="none";
   document.getElementById("reviewBody").innerHTML =
     `<div style="text-align:center; padding:18px 8px">
        <div style="font-family:'Oswald'; font-size:42px; line-height:1; color:var(--ok)">&#10003;</div>
@@ -785,6 +824,7 @@ document.getElementById("submitBtn").addEventListener("click", ()=>{
     document.querySelector(".codeline.missing .kc-select")?.scrollIntoView({behavior:"smooth", block:"center"}); return; }
   const miss=requiredMissing();
   if(miss.length){ toast("Add your "+miss[0]+" first"); overlay.classList.remove("open"); focusMiss(miss[0]); return; }
+  if(ackMissing()) return;
   if(!CONFIG.logUrl){ document.getElementById("emailBtn").click(); return; }  // Sheet not set up yet → email backup
   const btn=document.getElementById("submitBtn"); btn.disabled=true; btn.textContent="Submitting…";
   fetch(CONFIG.logUrl, {method:"POST", body:JSON.stringify(buildPayload())})
@@ -798,6 +838,7 @@ document.getElementById("emailBtn").addEventListener("click", ()=>{
     document.querySelector(".codeline.missing .kc-select")?.scrollIntoView({behavior:"smooth", block:"center"}); return; }
   const miss=requiredMissing();
   if(miss.length){ toast("Add your "+miss[0]+" first"); overlay.classList.remove("open"); focusMiss(miss[0]); return; }
+  if(ackMissing()) return;
   const subj = `Supply order ${currentOrderId} — ${document.getElementById("vName").value.trim()}`;
   window.location.href = `mailto:${CONFIG.orderEmail}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(orderText())}`;
 });
@@ -808,6 +849,10 @@ document.getElementById("copyBtn").addEventListener("click", async ()=>{
 document.getElementById("printBtn").addEventListener("click", ()=> window.print());
 
 /* init */
+document.getElementById("billbackTop").innerHTML =
+  `<span class="bb-ic">!</span><span><b>Supplies are billed back to you.</b> ${CONFIG.deductNotice}</span>`;
+document.getElementById("deductNote").textContent = CONFIG.deductNotice;
+document.getElementById("ackLabel").textContent = CONFIG.deductConfirm;
 buildCatalog(); updateBar();
 </script>
 </body>
