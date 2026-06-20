@@ -124,21 +124,29 @@
   .price .est{color:var(--steel); font-weight:500}
   .price small{display:block; font-size:10.5px; color:var(--steel); font-weight:500}
 
-  /* key-code selector (locks only, shows when qty > 0) */
-  .keycode{display:none; margin-top:10px; padding:10px 12px; border:1px dashed var(--hi);
-    border-radius:9px; background:#fff; gap:10px; align-items:center; flex-wrap:wrap}
-  .keycode.show{display:flex}
-  .keycode.missing{background:var(--hi-dim); border-style:solid}
-  .keycode label{margin:0; white-space:nowrap; color:var(--ink)}
-  .keycode label .req{color:var(--hi)}
-  .keycode select, .keycode .kc-custom{padding:9px 11px; border:1px solid var(--line); border-radius:7px;
-    font:inherit; font-size:14px; background:#fcfdfe; min-width:170px}
-  .keycode .kc-custom{display:none}
-  .keycode .kc-custom.show{display:inline-block}
-  .kc-hint{font-size:12px; color:var(--steel); flex-basis:100%}
+  /* add-key-code button (replaces stepper on lock items) */
+  .addcode{border:1px solid var(--hi); background:var(--hi-dim); color:var(--hi);
+    font:inherit; font-weight:700; font-size:13px; padding:9px 13px; border-radius:8px; cursor:pointer; white-space:nowrap}
+  .addcode:hover{background:#ffe4d3}
+
+  /* per-lock key-code lines (each its own code + quantity) */
+  .lockcodes{margin-top:10px; display:flex; flex-direction:column; gap:8px}
+  .lc-empty{font-size:12.5px; color:var(--steel); padding:2px 2px 0}
+  .codeline{display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+    padding:8px 10px; border:1px solid var(--line); border-radius:9px; background:#fff}
+  .codeline.missing{border-color:var(--hi); background:var(--hi-dim)}
+  .codeline select{padding:9px 11px; border:1px solid var(--line); border-radius:7px;
+    font:inherit; font-size:14px; background:#fcfdfe; min-width:150px}
+  .codeline .kc-custom{display:none; padding:9px 11px; border:1px solid var(--line); border-radius:7px;
+    font:inherit; font-size:14px; background:#fcfdfe; width:130px}
+  .codeline .kc-custom.show{display:inline-block}
+  .codeline .rm{margin-left:auto; border:0; background:var(--paper); color:var(--steel);
+    width:34px; height:34px; border-radius:7px; font-size:14px; cursor:pointer}
+  .codeline .rm:hover{background:#e6e2db; color:var(--ink)}
 
   /* qty stepper */
   .stepper{display:inline-flex; align-items:center; border:1px solid var(--line); border-radius:8px; overflow:hidden}
+  .stepper.sm button{width:30px; height:34px} .stepper.sm input{width:42px; height:34px}
   .stepper button{width:34px; height:38px; border:0; background:#fff; font-size:18px; font-weight:600;
     color:var(--ink); cursor:pointer; line-height:1}
   .stepper button:hover{background:var(--paper)}
@@ -146,6 +154,12 @@
     text-align:center; font:inherit; font-weight:600; font-variant-numeric:tabular-nums; -moz-appearance:textfield}
   .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none}
   .empty-cat{display:none; padding:22px 18px; color:var(--steel); font-size:14px}
+  .checkout-cta{padding:18px; border-top:1px solid var(--line); display:flex; justify-content:flex-end}
+  .checkout-cta button{background:var(--hi); color:#1b1e23; border:0; font-family:"Oswald";
+    font-weight:700; text-transform:uppercase; letter-spacing:.05em; font-size:16px;
+    padding:14px 26px; border-radius:10px; cursor:pointer}
+  .checkout-cta button:hover{filter:brightness(1.06)}
+  .checkout-cta button:disabled{opacity:.4; cursor:not-allowed}
 
   /* ---------- sticky total bar ---------- */
   .bar{position:fixed; left:0; right:0; bottom:0; z-index:40; background:var(--ink); color:#fff;
@@ -209,7 +223,8 @@
   @media (max-width:640px){
     .grid{grid-template-columns:1fr}
     .item-top{grid-template-columns:1fr auto; grid-template-areas:"main price" "stepper stepper"; row-gap:10px}
-    .item-main{grid-area:main} .price{grid-area:price} .stepper{grid-area:stepper; justify-self:start}
+    .item-main{grid-area:main} .price{grid-area:price}
+    .stepper, .addcode{grid-area:stepper; justify-self:start}
     .ticket{display:none}
     .bar-wrap{flex-wrap:wrap; gap:10px 14px} .ship-meter{order:3; flex-basis:100%; max-width:none}
     .btn-send{padding:12px 16px}
@@ -280,6 +295,9 @@
 
     <div id="catalog"></div>
     <div class="empty-cat" id="emptyMsg">No supplies match that search. Clear it to see everything.</div>
+    <div class="checkout-cta">
+      <button id="reviewBtn2" disabled>Review &amp; send order →</button>
+    </div>
   </section>
 
   <footer>
@@ -322,7 +340,7 @@
    EDIT ME #1 — CONFIG
    ============================================================ */
 const CONFIG = {
-  logUrl:     "https://script.google.com/macros/s/AKfycbwCIC9orsSq1kdVVnfj1blNjYAiY1d3KA7iNkGmmS2FC5_o-LHhzJWiqygUDFVfcQm_/exec",                              // <-- PASTE your Google Sheet Web App URL here
+  logUrl:     "",                              // <-- PASTE your Google Sheet Web App URL here
   orderEmail: "orders@povpreservation.com",   // backup: where emailed orders go
   company:    "POV Preservation",
   freeShipThreshold: 300                        // per supplier
@@ -385,9 +403,8 @@ const CATALOG = [
    Engine — no need to edit below
    ============================================================ */
 const SUP = {MFS:{label:"MFS Supply", cls:"mfs"}, HGS:{label:"Home Guard", cls:"hgs"}};
-const qty = {};               // index -> quantity
-const keyCode = {};           // index -> selected code, "CUSTOM", or ""
-const customCode = {};        // index -> typed custom code
+const qty = {};               // index -> quantity (non-keyed items only)
+const lockLines = {};         // index -> [{code, custom, qty}, ...] (keyed items)
 const money = n => "$" + n.toFixed(2);
 
 /* Standard REO/HUD key codes (knob sets, deadbolts & combos are keyed alike).
@@ -397,27 +414,30 @@ const KEY_CODES = ["11211","11635","13152","13213","13226","14334","21121","2235
   "44535","44637","46637","52534","53611","53612","55535","63542","64445","65432",
   "67767","75657","76667"];
 
-function keyCodeHtml(i){
-  const sel = keyCode[i] || "";
+function lines(i){ return lockLines[i] || (lockLines[i] = []); }
+function lineCode(ln){ return ln.code==="CUSTOM" ? ((ln.custom||"").trim() || null) : (ln.code || null); }
+
+function codeOptions(sel){
   const opts = KEY_CODES.map(c=>`<option value="${c}" ${sel===c?"selected":""}>${c}</option>`).join("");
-  return `<div class="keycode" data-kc="${i}">
-      <label>Key code <span class="req">*</span></label>
-      <select class="kc-select" data-idx="${i}">
-        <option value="" ${sel===""?"selected":""}>Select a code…</option>
-        <optgroup label="Standard REO codes">${opts}</optgroup>
-        <option value="CUSTOM" ${sel==="CUSTOM"?"selected":""}>Custom / specialized code…</option>
-      </select>
-      <input class="kc-custom ${sel==="CUSTOM"?"show":""}" data-idx="${i}" type="text"
-             placeholder="Type the code you need" value="${customCode[i]||""}">
-      <span class="kc-hint">Keep the knob set &amp; deadbolt on the same code so one key opens both.</span>
-    </div>`;
+  return `<option value="" ${sel===""?"selected":""}>Select a code…</option>
+      <optgroup label="Standard REO codes">${opts}</optgroup>
+      <option value="CUSTOM" ${sel==="CUSTOM"?"selected":""}>Custom / specialized code…</option>`;
 }
-// Resolved code for an item, or null if a keyed item still needs one
-function codeFor(i){
-  if(!CATALOG[i].keyed) return null;
-  const v = keyCode[i];
-  if(v==="CUSTOM") return (customCode[i]||"").trim() || null;
-  return v || null;
+// Renders all key-code lines under a keyed item (one row per code + its own quantity)
+function lockLinesHtml(i){
+  const ls = lines(i);
+  if(!ls.length) return `<div class="lc-empty">Tap <b>+ Add key code</b> to choose codes and quantities.</div>`;
+  return ls.map((ln,k)=>`
+    <div class="codeline" data-idx="${i}" data-ln="${k}">
+      <select class="kc-select">${codeOptions(ln.code||"")}</select>
+      <input class="kc-custom ${ln.code==="CUSTOM"?"show":""}" type="text" placeholder="Type code" value="${(ln.custom||"").replace(/"/g,'&quot;')}">
+      <div class="stepper sm">
+        <button type="button" aria-label="decrease" data-act="dec">−</button>
+        <input type="number" min="0" inputmode="numeric" data-q value="${ln.qty||0}">
+        <button type="button" aria-label="increase" data-act="inc">+</button>
+      </div>
+      <button type="button" class="rm" aria-label="remove">✕</button>
+    </div>`).join("");
 }
 
 /* ---- Inline icons (no external files; never break) ----
@@ -491,29 +511,32 @@ function buildCatalog(){
         : `<span class="est">quote</span><small>price TBD</small>`;
       const row = document.createElement("div");
       row.className = "item"; row.dataset.idx = i;
+      const control = p.keyed
+        ? `<button type="button" class="addcode" data-idx="${i}">+ Add key code</button>`
+        : `<div class="stepper">
+            <button type="button" aria-label="decrease" data-act="dec">−</button>
+            <input type="number" min="0" inputmode="numeric" value="${qty[i]||0}" data-idx="${i}">
+            <button type="button" aria-label="increase" data-act="inc">+</button>
+          </div>`;
       row.innerHTML = `
         <div class="item-top">
           <div class="item-main">
             ${chipHtml(p, i)}
             <div class="item-text">
               <div class="item-name">${p.name}</div>
-              <div class="item-meta"><span class="tag ${SUP[p.sup].cls}">${SUP[p.sup].label}</span>${p.keyed?'<span style="color:var(--steel)">key code required</span>':''}</div>
+              <div class="item-meta"><span class="tag ${SUP[p.sup].cls}">${SUP[p.sup].label}</span>${p.keyed?'<span style="color:var(--steel)">choose code(s) + qty</span>':''}</div>
             </div>
           </div>
           <div class="price">${priceStr}</div>
-          <div class="stepper">
-            <button type="button" aria-label="decrease" data-act="dec">−</button>
-            <input type="number" min="0" inputmode="numeric" value="${qty[i]||0}" data-idx="${i}">
-            <button type="button" aria-label="increase" data-act="inc">+</button>
-          </div>
+          ${control}
         </div>
-        ${p.keyed ? keyCodeHtml(i) : ""}`;
+        ${p.keyed ? `<div class="lockcodes" data-idx="${i}">${lockLinesHtml(i)}</div>` : ""}`;
       g.appendChild(row);
     });
     cont.appendChild(g);
   });
   document.getElementById("emptyMsg").style.display = anyShown ? "none" : "block";
-  refreshActive(); refreshKeycodes();
+  refreshActive();
 }
 
 function setQty(i, v){
@@ -521,32 +544,34 @@ function setQty(i, v){
   if(v) qty[i]=v; else delete qty[i];
   const inp = document.querySelector(`input[data-idx="${i}"]`);
   if(inp) inp.value = v;
-  refreshActive(); refreshKeycodes(); updateBar();
+  refreshActive(); updateBar();
+}
+
+// Re-render just one keyed item's code lines (after add/remove)
+function repaintLockcodes(i){
+  const cont = document.querySelector(`.lockcodes[data-idx="${i}"]`);
+  if(cont) cont.innerHTML = lockLinesHtml(i);
 }
 
 function refreshActive(){
   document.querySelectorAll(".item").forEach(el=>{
-    el.classList.toggle("active", !!qty[el.dataset.idx]);
-  });
-}
-
-// Show a key-code selector only once a keyed item has a quantity
-function refreshKeycodes(){
-  document.querySelectorAll(".keycode").forEach(el=>{
-    const i = el.dataset.kc;
-    el.classList.toggle("show", !!qty[i]);
-    if(!qty[i]) el.classList.remove("missing");
+    const i = el.dataset.idx, p = CATALOG[i];
+    const on = p.keyed ? lines(i).some(l=>l.qty>0) : !!qty[i];
+    el.classList.toggle("active", on);
   });
 }
 
 function totals(){
   const bySup = {}; let grand=0, count=0;
-  Object.keys(qty).forEach(i=>{
-    const p = CATALOG[i], q = qty[i], line = p.price*q;
-    grand += line; count += q;
+  const add = (p, q, code)=>{
+    const line = p.price*q; grand += line; count += q;
     (bySup[p.sup] = bySup[p.sup] || {items:[], sub:0});
-    bySup[p.sup].items.push({p, q, line, code:codeFor(i)});
+    bySup[p.sup].items.push({p, q, line, code});
     bySup[p.sup].sub += line;
+  };
+  CATALOG.forEach((p,i)=>{
+    if(p.keyed){ lines(i).forEach(ln=>{ if(ln.qty>0) add(p, ln.qty, lineCode(ln)); }); }
+    else if(qty[i]>0){ add(p, qty[i], null); }
   });
   return {bySup, grand, count};
 }
@@ -556,6 +581,7 @@ function updateBar(){
   document.getElementById("barTotal").textContent = money(grand);
   document.getElementById("barCount").textContent = count + (count===1?" item":" items");
   document.getElementById("reviewBtn").disabled = count===0;
+  document.getElementById("reviewBtn2").disabled = count===0;
 
   // free-ship meter tracks the supplier closest to (but under) threshold; if all met, show done
   const T = CONFIG.freeShipThreshold;
@@ -581,15 +607,18 @@ function requiredMissing(){
   const need = {vName:"name", vPhone:"phone", vAddr:"address", vCity:"city", vState:"state", vZip:"ZIP"};
   return Object.entries(need).filter(([id])=>!document.getElementById(id).value.trim()).map(([,l])=>l);
 }
-// Keyed items that have a quantity but no code chosen yet
+// Keyed items that have a quantity on a line but no code chosen yet
 function missingCodes(){
-  return Object.keys(qty).filter(i=>CATALOG[i].keyed && !codeFor(i)).map(i=>CATALOG[i].name);
+  const out=[];
+  CATALOG.forEach((p,i)=>{ if(p.keyed) lines(i).forEach(ln=>{ if(ln.qty>0 && !lineCode(ln)) out.push(p.name); }); });
+  return [...new Set(out)];
 }
-// Highlight the key-code rows that still need a code; returns how many
+// Highlight the code lines that still need a code; returns how many
 function flagMissingCodes(){
   let n=0;
-  document.querySelectorAll(".keycode").forEach(el=>{
-    const i=el.dataset.kc, bad = qty[i] && CATALOG[i].keyed && !codeFor(i);
+  document.querySelectorAll(".codeline").forEach(el=>{
+    const ln = (lockLines[el.dataset.idx]||[])[+el.dataset.ln];
+    const bad = ln && ln.qty>0 && !lineCode(ln);
     el.classList.toggle("missing", !!bad); if(bad) n++;
   });
   return n;
@@ -663,22 +692,37 @@ document.getElementById("catalog").addEventListener("error", e=>{
   if(chip) chip.innerHTML = svgIcon(CATALOG[e.target.dataset.idx]);
 }, true);
 document.getElementById("catalog").addEventListener("click", e=>{
+  // add a new code line to a keyed item
+  const add = e.target.closest(".addcode");
+  if(add){ const i=add.dataset.idx; lines(i).push({code:"",custom:"",qty:1}); repaintLockcodes(i); refreshActive(); updateBar(); return; }
+  // remove a code line
+  const rm = e.target.closest(".rm");
+  if(rm){ const cl=rm.closest(".codeline"); const i=cl.dataset.idx; lockLines[i].splice(+cl.dataset.ln,1); repaintLockcodes(i); refreshActive(); updateBar(); return; }
+  // +/- buttons (could be a code line, or a non-keyed item)
   const btn = e.target.closest("button[data-act]"); if(!btn) return;
+  const cl = btn.closest(".codeline");
+  if(cl){ const ln=lockLines[cl.dataset.idx][+cl.dataset.ln];
+    ln.qty = Math.max(0,(ln.qty||0)+(btn.dataset.act==="inc"?1:-1));
+    const inp=cl.querySelector("input[data-q]"); if(inp) inp.value=ln.qty;
+    refreshActive(); flagMissingCodes(); updateBar(); return; }
   const i = btn.closest(".item").dataset.idx;
   setQty(i, (qty[i]||0) + (btn.dataset.act==="inc"?1:-1));
 });
 document.getElementById("catalog").addEventListener("input", e=>{
+  if(e.target.matches("input[data-q]")){ const cl=e.target.closest(".codeline");
+    lockLines[cl.dataset.idx][+cl.dataset.ln].qty = Math.max(0, parseInt(e.target.value,10)||0);
+    refreshActive(); flagMissingCodes(); updateBar(); return; }
   if(e.target.matches("input[data-idx]") && e.target.type==="number"){ setQty(e.target.dataset.idx, parseInt(e.target.value,10)); return; }
-  if(e.target.matches(".kc-custom")){ customCode[e.target.dataset.idx] = e.target.value; flagMissingCodes(); }
+  if(e.target.matches(".kc-custom")){ const cl=e.target.closest(".codeline");
+    lockLines[cl.dataset.idx][+cl.dataset.ln].custom = e.target.value; flagMissingCodes(); updateBar(); }
 });
 document.getElementById("catalog").addEventListener("change", e=>{
   if(!e.target.matches(".kc-select")) return;
-  const i = e.target.dataset.idx;
-  keyCode[i] = e.target.value;
-  const custom = e.target.closest(".keycode").querySelector(".kc-custom");
-  custom.classList.toggle("show", e.target.value==="CUSTOM");
-  if(e.target.value==="CUSTOM") custom.focus();
-  flagMissingCodes();
+  const cl=e.target.closest(".codeline"); const ln=lockLines[cl.dataset.idx][+cl.dataset.ln];
+  ln.code = e.target.value;
+  const custom = cl.querySelector(".kc-custom"); const isC = e.target.value==="CUSTOM";
+  custom.classList.toggle("show", isC); if(isC) custom.focus();
+  flagMissingCodes(); updateBar();
 });
 document.getElementById("search").addEventListener("input", e=>{ search=e.target.value.toLowerCase().trim(); buildCatalog(); });
 document.getElementById("supFilter").addEventListener("click", e=>{
@@ -698,11 +742,14 @@ function focusMiss(label){
   const map={name:"vName",phone:"vPhone",address:"vAddr",city:"vCity",state:"vState",ZIP:"vZip"};
   const el=document.getElementById(map[label]); if(el) el.focus();
 }
-document.getElementById("reviewBtn").addEventListener("click", ()=>{
+function openReview(){
+  if(totals().count===0){ toast("Add some supplies first"); return; }
   currentOrderId = newOrderId();
   const b=document.getElementById("submitBtn"); b.disabled=false; b.textContent="Submit Order to POV";
   buildReview(); overlay.classList.add("open");
-});
+}
+document.getElementById("reviewBtn").addEventListener("click", openReview);
+document.getElementById("reviewBtn2").addEventListener("click", openReview);
 document.getElementById("closeBtn").addEventListener("click", ()=> overlay.classList.remove("open"));
 overlay.addEventListener("click", e=>{ if(e.target===overlay) overlay.classList.remove("open"); });
 
@@ -735,7 +782,7 @@ function showConfirmation(){
 document.getElementById("submitBtn").addEventListener("click", ()=>{
   const codeMiss=missingCodes();
   if(codeMiss.length){ flagMissingCodes(); toast("Choose a key code for "+codeMiss[0]); overlay.classList.remove("open");
-    document.querySelector(".keycode.missing .kc-select")?.scrollIntoView({behavior:"smooth", block:"center"}); return; }
+    document.querySelector(".codeline.missing .kc-select")?.scrollIntoView({behavior:"smooth", block:"center"}); return; }
   const miss=requiredMissing();
   if(miss.length){ toast("Add your "+miss[0]+" first"); overlay.classList.remove("open"); focusMiss(miss[0]); return; }
   if(!CONFIG.logUrl){ document.getElementById("emailBtn").click(); return; }  // Sheet not set up yet → email backup
@@ -748,7 +795,7 @@ document.getElementById("submitBtn").addEventListener("click", ()=>{
 document.getElementById("emailBtn").addEventListener("click", ()=>{
   const codeMiss=missingCodes();
   if(codeMiss.length){ flagMissingCodes(); toast("Choose a key code for "+codeMiss[0]); overlay.classList.remove("open");
-    document.querySelector(".keycode.missing .kc-select")?.scrollIntoView({behavior:"smooth", block:"center"}); return; }
+    document.querySelector(".codeline.missing .kc-select")?.scrollIntoView({behavior:"smooth", block:"center"}); return; }
   const miss=requiredMissing();
   if(miss.length){ toast("Add your "+miss[0]+" first"); overlay.classList.remove("open"); focusMiss(miss[0]); return; }
   const subj = `Supply order ${currentOrderId} — ${document.getElementById("vName").value.trim()}`;
