@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POV Preservation — Vendor Supply Order</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     POV PRESERVATION — VENDOR SUPPLY ORDER FORM
+     ------------------------------------------------------------
+     >> TO UPDATE: edit ONLY the two spots marked  EDIT ME  below:
+        1. CONFIG  (your order email, company name)
+        2. CATALOG (product list + prices)
+     Everything else runs itself.
+     ============================================================ */
+
+  :root{
+    --ink:#1b1e23;          /* near-black, warm */
+    --slate:#2b313a;        /* panel dark */
+    --steel:#5b6470;        /* muted labels */
+    --line:#d9dde2;         /* hairlines */
+    --paper:#eceef1;        /* page bg */
+    --card:#ffffff;         /* surfaces */
+    --hi:#ff6a13;           /* safety orange — the one bold color */
+    --hi-dim:#fff0e6;       /* orange wash */
+    --mfs:#2f6f8f;          /* MFS supplier tag */
+    --hgs:#3f8f5b;          /* Home Guard supplier tag */
+    --ok:#2f8f5b;
+    --shadow:0 1px 2px rgba(20,24,30,.06), 0 8px 24px rgba(20,24,30,.06);
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Inter",system-ui,-apple-system,sans-serif;
+    font-size:15px; line-height:1.45;
+    padding-bottom:120px; /* room for sticky bar */
+  }
+
+  /* ---------- header / work-order masthead ---------- */
+  header{
+    background:var(--ink); color:#fff;
+    border-bottom:4px solid var(--hi);
+  }
+  .head-wrap{max-width:1000px; margin:0 auto; padding:22px 20px 20px;
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap}
+  .mark{
+    font-family:"Oswald"; font-weight:700; letter-spacing:.5px;
+    font-size:26px; line-height:1; text-transform:uppercase;
+  }
+  .mark b{color:var(--hi)}
+  .head-sub{font-size:12.5px; color:#aeb6c0; letter-spacing:.06em;
+    text-transform:uppercase; font-weight:600; margin-top:5px}
+  .ticket{
+    margin-left:auto; text-align:right; font-size:12px; color:#aeb6c0;
+    border-left:1px solid #3a414c; padding-left:16px; line-height:1.5;
+  }
+  .ticket b{color:#fff; font-family:"Oswald"; font-weight:600;
+    letter-spacing:.04em; display:block; font-size:13px}
+
+  main{max-width:1000px; margin:0 auto; padding:22px 20px}
+
+  /* ---------- section blocks ---------- */
+  .block{background:var(--card); border:1px solid var(--line);
+    border-radius:12px; box-shadow:var(--shadow); margin-bottom:18px; overflow:hidden}
+  .block-h{display:flex; align-items:baseline; gap:12px; padding:16px 18px 12px;
+    border-bottom:1px solid var(--line)}
+  .step{font-family:"Oswald"; font-weight:700; color:var(--hi);
+    font-size:13px; letter-spacing:.1em}
+  .block-h h2{font-family:"Oswald"; font-weight:600; text-transform:uppercase;
+    letter-spacing:.04em; font-size:17px; margin:0}
+  .block-h .hint{margin-left:auto; font-size:12px; color:var(--steel)}
+
+  /* ---------- form fields ---------- */
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:18px}
+  .full{grid-column:1 / -1}
+  label{display:block; font-size:12px; font-weight:600; color:var(--steel);
+    text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px}
+  label .req{color:var(--hi)}
+  input[type=text], input[type=email], input[type=tel], textarea, select{
+    width:100%; padding:11px 12px; border:1px solid var(--line);
+    border-radius:8px; font:inherit; font-size:15px; background:#fcfdfe; color:var(--ink);
+  }
+  input:focus, textarea:focus, select:focus{outline:2px solid var(--hi); outline-offset:1px; border-color:var(--hi)}
+  textarea{resize:vertical; min-height:62px}
+
+  /* ---------- catalog controls ---------- */
+  .controls{display:flex; gap:10px; padding:14px 18px; flex-wrap:wrap; align-items:center;
+    border-bottom:1px solid var(--line); background:#fafbfc}
+  .controls input[type=text]{flex:1; min-width:160px}
+  .seg{display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden}
+  .seg button{border:0; background:#fff; padding:9px 13px; font:inherit; font-weight:600;
+    font-size:13px; color:var(--steel); cursor:pointer}
+  .seg button.on{background:var(--ink); color:#fff}
+  .legend{font-size:11.5px; color:var(--steel); margin-left:auto; display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+  .dot{display:inline-block; width:9px; height:9px; border-radius:2px; vertical-align:middle; margin-right:4px}
+
+  /* ---------- catalog ---------- */
+  .cat-group{padding:6px 0}
+  .cat-name{font-family:"Oswald"; font-weight:600; text-transform:uppercase; letter-spacing:.06em;
+    font-size:13px; color:var(--steel); padding:14px 18px 6px; background:#fff}
+  .item{padding:11px 18px; border-top:1px solid var(--line)}
+  .item:hover{background:#fafbfc}
+  .item.active{background:var(--hi-dim)}
+  .item-top{display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center}
+  .item-main{display:flex; align-items:center; gap:11px; min-width:0}
+  .item-text{min-width:0}
+  .ico{flex:0 0 auto; width:40px; height:40px; border-radius:9px; background:var(--paper);
+    border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+    color:var(--slate); overflow:hidden}
+  .ico svg{width:23px; height:23px}
+  .ico img{width:100%; height:100%; object-fit:cover}
+  .item.active .ico{background:#fff; border-color:var(--hi); color:var(--hi)}
+  .item-name{font-weight:600; font-size:14.5px; line-height:1.25}
+  .item-meta{font-size:12px; color:var(--steel); margin-top:3px; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  .tag{font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+    padding:2px 6px; border-radius:4px; color:#fff}
+  .tag.mfs{background:var(--mfs)} .tag.hgs{background:var(--hgs)}
+  .price{font-variant-numeric:tabular-nums; font-weight:600; white-space:nowrap; text-align:right; min-width:74px}
+  .price .est{color:var(--steel); font-weight:500}
+  .price small{display:block; font-size:10.5px; color:var(--steel); font-weight:500}
+
+  /* key-code selector (locks only, shows when qty > 0) */
+  .keycode{display:none; margin-top:10px; padding:10px 12px; border:1px dashed var(--hi);
+    border-radius:9px; background:#fff; gap:10px; align-items:center; flex-wrap:wrap}
+  .keycode.show{display:flex}
+  .keycode.missing{background:var(--hi-dim); border-style:solid}
+  .keycode label{margin:0; white-space:nowrap; color:var(--ink)}
+  .keycode label .req{color:var(--hi)}
+  .keycode select, .keycode .kc-custom{padding:9px 11px; border:1px solid var(--line); border-radius:7px;
+    font:inherit; font-size:14px; background:#fcfdfe; min-width:170px}
+  .keycode .kc-custom{display:none}
+  .keycode .kc-custom.show{display:inline-block}
+  .kc-hint{font-size:12px; color:var(--steel); flex-basis:100%}
+
+  /* qty stepper */
+  .stepper{display:inline-flex; align-items:center; border:1px solid var(--line); border-radius:8px; overflow:hidden}
+  .stepper button{width:34px; height:38px; border:0; background:#fff; font-size:18px; font-weight:600;
+    color:var(--ink); cursor:pointer; line-height:1}
+  .stepper button:hover{background:var(--paper)}
+  .stepper input{width:46px; height:38px; border:0; border-left:1px solid var(--line); border-right:1px solid var(--line);
+    text-align:center; font:inherit; font-weight:600; font-variant-numeric:tabular-nums; -moz-appearance:textfield}
+  .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none}
+  .empty-cat{display:none; padding:22px 18px; color:var(--steel); font-size:14px}
+
+  /* ---------- sticky total bar ---------- */
+  .bar{position:fixed; left:0; right:0; bottom:0; z-index:40; background:var(--ink); color:#fff;
+    border-top:4px solid var(--hi); box-shadow:0 -8px 24px rgba(20,24,30,.18)}
+  .bar-wrap{max-width:1000px; margin:0 auto; padding:12px 20px; display:flex; align-items:center; gap:18px}
+  .bar .tally{font-size:12.5px; color:#aeb6c0; line-height:1.3}
+  .bar .tally b{color:#fff; font-family:"Oswald"; font-size:24px; font-weight:700; letter-spacing:.02em}
+  .ship-meter{flex:1; min-width:120px; max-width:420px}
+  .ship-meter .lbl{font-size:11.5px; color:#aeb6c0; margin-bottom:5px}
+  .ship-meter .lbl b{color:var(--hi); font-weight:700}
+  .track{height:7px; background:#3a414c; border-radius:99px; overflow:hidden}
+  .fill{height:100%; width:0; background:var(--hi); border-radius:99px; transition:width .25s ease}
+  .fill.done{background:var(--ok)}
+  .btn-send{margin-left:auto; background:var(--hi); color:#1b1e23; border:0; font-family:"Oswald";
+    font-weight:700; text-transform:uppercase; letter-spacing:.05em; font-size:15px;
+    padding:13px 22px; border-radius:9px; cursor:pointer; white-space:nowrap}
+  .btn-send:hover{filter:brightness(1.06)} .btn-send:disabled{opacity:.4; cursor:not-allowed}
+
+  /* ---------- review modal ---------- */
+  .overlay{position:fixed; inset:0; background:rgba(20,24,30,.55); z-index:60; display:none;
+    align-items:flex-start; justify-content:center; padding:24px; overflow:auto}
+  .overlay.open{display:flex}
+  .modal{background:var(--card); border-radius:14px; max-width:680px; width:100%; box-shadow:var(--shadow); overflow:hidden}
+  .modal-h{display:flex; align-items:center; gap:12px; padding:18px 22px; border-bottom:1px solid var(--line)}
+  .modal-h h2{font-family:"Oswald"; text-transform:uppercase; letter-spacing:.04em; margin:0; font-size:19px}
+  .x{margin-left:auto; border:0; background:var(--paper); width:34px; height:34px; border-radius:8px;
+    font-size:18px; cursor:pointer; color:var(--ink)}
+  .modal-body{padding:22px; max-height:60vh; overflow:auto}
+  .sup-block{border:1px solid var(--line); border-radius:10px; margin-bottom:14px; overflow:hidden}
+  .sup-head{display:flex; align-items:center; gap:8px; padding:11px 14px; background:#fafbfc; border-bottom:1px solid var(--line)}
+  .sup-head .name{font-family:"Oswald"; font-weight:600; letter-spacing:.03em; font-size:15px}
+  .sup-head .sub{margin-left:auto; font-size:12px; color:var(--steel)}
+  .ol{padding:6px 14px}
+  .ol-row{display:flex; justify-content:space-between; gap:10px; padding:6px 0; font-size:14px; border-bottom:1px dashed var(--line)}
+  .ol-row:last-child{border-bottom:0}
+  .ol-row .q{color:var(--steel); font-variant-numeric:tabular-nums}
+  .ol-row .lt{font-variant-numeric:tabular-nums; font-weight:600}
+  .sup-foot{display:flex; justify-content:space-between; padding:10px 14px; background:#fafbfc;
+    border-top:1px solid var(--line); font-weight:600; font-variant-numeric:tabular-nums}
+  .freeship{font-size:12px; font-weight:600}
+  .freeship.yes{color:var(--ok)} .freeship.no{color:var(--hi)}
+  .grand{display:flex; justify-content:space-between; align-items:baseline; padding:14px 4px 2px;
+    font-family:"Oswald"; font-size:22px; font-weight:700}
+  .modal-foot{display:flex; gap:10px; padding:16px 22px; border-top:1px solid var(--line); flex-wrap:wrap}
+  .btn{border:1px solid var(--line); background:#fff; font:inherit; font-weight:600; font-size:14px;
+    padding:12px 16px; border-radius:9px; cursor:pointer; color:var(--ink)}
+  .btn:hover{background:var(--paper)}
+  .btn.primary{background:var(--hi); color:#1b1e23; border-color:var(--hi); flex:1; min-width:180px;
+    font-family:"Oswald"; text-transform:uppercase; letter-spacing:.04em}
+  .btn.primary:hover{filter:brightness(1.06)}
+  .note-line{font-size:12.5px; color:var(--steel); padding:0 22px 18px}
+  .miss{color:var(--hi); font-weight:600}
+
+  .toast{position:fixed; bottom:96px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:#fff; padding:11px 18px; border-radius:9px; font-weight:600; font-size:14px;
+    opacity:0; pointer-events:none; transition:.25s; z-index:80; border:1px solid #3a414c}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+  footer{max-width:1000px; margin:0 auto; padding:8px 20px 28px; color:var(--steel); font-size:12px}
+
+  @media (max-width:640px){
+    .grid{grid-template-columns:1fr}
+    .item-top{grid-template-columns:1fr auto; grid-template-areas:"main price" "stepper stepper"; row-gap:10px}
+    .item-main{grid-area:main} .price{grid-area:price} .stepper{grid-area:stepper; justify-self:start}
+    .ticket{display:none}
+    .bar-wrap{flex-wrap:wrap; gap:10px 14px} .ship-meter{order:3; flex-basis:100%; max-width:none}
+    .btn-send{padding:12px 16px}
+  }
+  @media print{
+    body{background:#fff; padding:0} .bar,.controls,.overlay,header .ticket{display:none!important}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-wrap">
+    <div>
+      <div class="mark">POV <b>Preservation</b></div>
+      <div class="head-sub">Vendor Supply Order — Field Materials Request</div>
+    </div>
+    <div class="ticket">
+      <b>Work Order</b>
+      Pick items below → review → send.<br>We place the order &amp; ship it to you.
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- STEP 1: who + where -->
+  <section class="block">
+    <div class="block-h"><span class="step">01</span><h2>Ship To</h2>
+      <span class="hint">We ship supplies directly to you</span></div>
+    <div class="grid">
+      <div><label>Vendor / crew name <span class="req">*</span></label>
+        <input type="text" id="vName" placeholder="Crew or company name"></div>
+      <div><label>Phone <span class="req">*</span></label>
+        <input type="tel" id="vPhone" placeholder="(555) 555-5555"></div>
+      <div class="full"><label>Email</label>
+        <input type="email" id="vEmail" placeholder="you@email.com"></div>
+      <div class="full"><label>Street address <span class="req">*</span></label>
+        <input type="text" id="vAddr" placeholder="123 Field Rd"></div>
+      <div><label>City <span class="req">*</span></label><input type="text" id="vCity"></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px">
+        <div><label>State <span class="req">*</span></label><input type="text" id="vState" maxlength="2" placeholder="CA"></div>
+        <div><label>ZIP <span class="req">*</span></label><input type="text" id="vZip" placeholder="95814"></div>
+      </div>
+      <div class="full"><label>Property / job reference (optional)</label>
+        <input type="text" id="vJob" placeholder="Loan #, address, or work order this is for"></div>
+    </div>
+  </section>
+
+  <!-- STEP 2: catalog -->
+  <section class="block">
+    <div class="block-h"><span class="step">02</span><h2>Choose Supplies</h2>
+      <span class="hint">Set quantities — totals update live</span></div>
+
+    <div class="controls">
+      <input type="text" id="search" placeholder="Search supplies…">
+      <div class="seg" id="supFilter">
+        <button data-sup="all" class="on">All</button>
+        <button data-sup="MFS">MFS</button>
+        <button data-sup="HGS">Home Guard</button>
+      </div>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--mfs)"></span>MFS Supply</span>
+        <span><span class="dot" style="background:var(--hgs)"></span>Home Guard</span>
+        <span>≈ estimated price</span>
+      </div>
+    </div>
+
+    <div id="catalog"></div>
+    <div class="empty-cat" id="emptyMsg">No supplies match that search. Clear it to see everything.</div>
+  </section>
+
+  <footer>
+    Free ground shipping at <b>$300+</b> per supplier (orders before 3pm ET ship same day).
+    Prices loaded from supplier listings — Home Guard verified; MFS marked “≈” are estimates to confirm against your account.
+  </footer>
+</main>
+
+<!-- sticky running total -->
+<div class="bar">
+  <div class="bar-wrap">
+    <div class="tally"><b id="barTotal">$0.00</b><br><span id="barCount">0 items</span></div>
+    <div class="ship-meter">
+      <div class="lbl" id="shipLbl">Add $300 per supplier for free shipping</div>
+      <div class="track"><div class="fill" id="shipFill"></div></div>
+    </div>
+    <button class="btn-send" id="reviewBtn" disabled>Review &amp; Send →</button>
+  </div>
+</div>
+
+<!-- review modal -->
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-h"><h2>Review Order</h2><button class="x" id="closeBtn" aria-label="Close">✕</button></div>
+    <div class="modal-body" id="reviewBody"></div>
+    <div class="note-line" id="missNote"></div>
+    <div class="modal-foot">
+      <button class="btn primary" id="submitBtn">Submit Order to POV</button>
+      <button class="btn" id="emailBtn">Email backup</button>
+      <button class="btn" id="copyBtn">Copy</button>
+      <button class="btn" id="printBtn">Print / PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   EDIT ME #1 — CONFIG
+   ============================================================ */
+const CONFIG = {
+  logUrl:     "",                              // <-- PASTE your Google Sheet Web App URL here
+  orderEmail: "orders@povpreservation.com",   // backup: where emailed orders go
+  company:    "POV Preservation",
+  freeShipThreshold: 300                        // per supplier
+};
+
+/* ============================================================
+   EDIT ME #2 — CATALOG
+   To change a price: edit the "price" number.
+   To add an item:    copy a line, change the fields.
+   est:true  -> shows the ≈ symbol (estimated, confirm later)
+   sup:       "MFS" or "HGS" (Home Guard)
+   ============================================================ */
+const CATALOG = [
+  // ---- Lockboxes ----
+  {cat:"Lockboxes", sup:"MFS", name:"VaultLOCKS 3200 — numeric key lockbox (most popular)", unit:"each", price:8.50, est:true, img:"lockbox-3200.jpg"},
+  {cat:"Lockboxes", sup:"MFS", name:"VaultLOCKS 5000 — large numeric lockbox", unit:"each", price:13.00, est:true, img:"lockbox-5000.jpg"},
+  {cat:"Lockboxes", sup:"MFS", name:"VaultLOCKS 5500 — dual-lock numeric lockbox", unit:"each", price:16.00, est:true},
+  {cat:"Lockboxes", sup:"MFS", name:"VaultLOCKS 3210 — wall-mount numeric lockbox", unit:"each", price:9.50, est:true},
+  {cat:"Lockboxes", sup:"HGS", name:"Numeric Lockbox — hinged (preset 0000)", unit:"each", price:12.99, img:"lockbox-numeric.jpg"},
+  {cat:"Lockboxes", sup:"HGS", name:"Alpha Lockbox — hinged (OCN)", unit:"each", price:10.99},
+  {cat:"Lockboxes", sup:"HGS", name:"Alpha Lockbox — removable door (NDE)", unit:"each", price:12.99},
+
+  // ---- Locks & Deadbolts ----  (keyed:true items require a key code at order)
+  {cat:"Locks & Deadbolts", sup:"HGS", name:"Entry lock set (brass)", unit:"each", price:7.00, keyed:true, img:"lockset.jpg"},
+  {cat:"Locks & Deadbolts", sup:"HGS", name:"Deadbolt (single cylinder)", unit:"each", price:7.00, keyed:true, img:"deadbolt.jpg"},
+  {cat:"Locks & Deadbolts", sup:"HGS", name:"Lock set + deadbolt combo", unit:"set", price:15.00, keyed:true, img:"lock-deadbolt-combo.jpg"},
+  {cat:"Locks & Deadbolts", sup:"HGS", name:"Satin nickel entry + deadbolt combo (prime REO code)", unit:"set", price:14.00, keyed:true},
+  {cat:"Locks & Deadbolts", sup:"MFS", name:"Entry lockset + deadbolt combo", unit:"set", price:14.00, est:true, keyed:true},
+
+  // ---- Keys ----
+  {cat:"Keys", sup:"MFS", name:"Contractor / HUD code key (cut to code)", unit:"each", price:1.25, est:true, keyed:true},
+  {cat:"Keys", sup:"HGS", name:"Common contractor master key set", unit:"set", price:9.99, est:true},
+
+  // ---- Padlocks & Securing Hardware ----
+  {cat:"Padlocks & Hardware", sup:"HGS", name:"40mm long-shackle padlock (A389)", unit:"each", price:3.75, img:"padlock-a389.jpg"},
+  {cat:"Padlocks & Hardware", sup:"MFS", name:"Hasp — securing", unit:"each", price:3.50, est:true},
+  {cat:"Padlocks & Hardware", sup:"MFS", name:"Slide / barrel bolt", unit:"each", price:2.50, est:true},
+  {cat:"Padlocks & Hardware", sup:"HGS", name:"Door hole cover", unit:"each", price:2.99, est:true},
+
+  // ---- Winterization ----
+  {cat:"Winterization", sup:"HGS", name:"Winterization labels / stickers", unit:"pack", price:11.99, img:"winterization-labels.jpg"},
+  {cat:"Winterization", sup:"HGS", name:"Winterized tape", unit:"roll", price:4.25},
+  {cat:"Winterization", sup:"HGS", name:"Toilet seat wrap 18\"x14\" (5 pack)", unit:"pack", price:5.00},
+  {cat:"Winterization", sup:"HGS", name:"Hose end caps (25 pack)", unit:"pack", price:9.99, img:"hose-end-caps.jpg"},
+  {cat:"Winterization", sup:"HGS", name:"Pipe plug — cast iron (specify size in notes)", unit:"each", price:0.79},
+  {cat:"Winterization", sup:"HGS", name:"Pipe cap — cast iron (specify size in notes)", unit:"each", price:0.85},
+  {cat:"Winterization", sup:"HGS", name:"In-line pressure test kit", unit:"each", price:45.00, img:"pressure-test-kit.jpg"},
+
+  // ---- Safety & Detectors ----
+  {cat:"Safety & Detectors", sup:"HGS", name:"Smoke alarm (9V, mounting hardware incl.)", unit:"each", price:6.75, img:"smoke-alarm.jpg"},
+  {cat:"Safety & Detectors", sup:"HGS", name:"Carbon monoxide detector", unit:"each", price:7.99, img:"co-detector.jpg"},
+
+  // ---- Site & Misc ----
+  {cat:"Site & Misc", sup:"HGS", name:"Caution tape — 3\"x300', non-adhesive", unit:"roll", price:5.75},
+  {cat:"Site & Misc", sup:"HGS", name:"Air freshener", unit:"each", price:1.50, est:true, img:"air-freshener.jpg"},
+  {cat:"Site & Misc", sup:"MFS", name:"Poly tarp — specify size in notes", unit:"each", price:0, est:true, img:"tarp.jpg"},
+];
+
+/* ============================================================
+   Engine — no need to edit below
+   ============================================================ */
+const SUP = {MFS:{label:"MFS Supply", cls:"mfs"}, HGS:{label:"Home Guard", cls:"hgs"}};
+const qty = {};               // index -> quantity
+const keyCode = {};           // index -> selected code, "CUSTOM", or ""
+const customCode = {};        // index -> typed custom code
+const money = n => "$" + n.toFixed(2);
+
+/* Standard REO/HUD key codes (knob sets, deadbolts & combos are keyed alike).
+   Add or remove codes here if your suppliers change their offering. */
+const KEY_CODES = ["11211","11635","13152","13213","13226","14334","21121","22351",
+  "22435","23323","25223","25345","32135","34255","35241","35453","35542","43341",
+  "44535","44637","46637","52534","53611","53612","55535","63542","64445","65432",
+  "67767","75657","76667"];
+
+function keyCodeHtml(i){
+  const sel = keyCode[i] || "";
+  const opts = KEY_CODES.map(c=>`<option value="${c}" ${sel===c?"selected":""}>${c}</option>`).join("");
+  return `<div class="keycode" data-kc="${i}">
+      <label>Key code <span class="req">*</span></label>
+      <select class="kc-select" data-idx="${i}">
+        <option value="" ${sel===""?"selected":""}>Select a code…</option>
+        <optgroup label="Standard REO codes">${opts}</optgroup>
+        <option value="CUSTOM" ${sel==="CUSTOM"?"selected":""}>Custom / specialized code…</option>
+      </select>
+      <input class="kc-custom ${sel==="CUSTOM"?"show":""}" data-idx="${i}" type="text"
+             placeholder="Type the code you need" value="${customCode[i]||""}">
+      <span class="kc-hint">Keep the knob set &amp; deadbolt on the same code so one key opens both.</span>
+    </div>`;
+}
+// Resolved code for an item, or null if a keyed item still needs one
+function codeFor(i){
+  if(!CATALOG[i].keyed) return null;
+  const v = keyCode[i];
+  if(v==="CUSTOM") return (customCode[i]||"").trim() || null;
+  return v || null;
+}
+
+/* ---- Inline icons (no external files; never break) ----
+   To use a real product photo for an item instead, add  img:"https://…"  to its
+   CATALOG line — the photo shows in place of the icon. */
+const ICONS = {
+  lockbox:'<rect x="3.5" y="8" width="17" height="12.5" rx="2"/><path d="M7.5 8V6a3 3 0 0 1 6 0"/><circle cx="12" cy="13.5" r="1.5"/><path d="M12 15v2.5"/>',
+  knob:'<rect x="9" y="3.5" width="6" height="17" rx="3"/><circle cx="12" cy="12" r="2"/>',
+  deadbolt:'<circle cx="12" cy="8" r="4"/><circle cx="12" cy="8" r="1"/><path d="M12 12v8"/>',
+  key:'<circle cx="8" cy="8" r="3.5"/><path d="M10.6 10.6 20 20"/><path d="m16 16 2-2M18.5 18.5l1.5-1.5"/>',
+  padlock:'<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+  hardware:'<rect x="3.5" y="10" width="9" height="4" rx="1"/><rect x="12.5" y="8.5" width="8" height="7" rx="1.5"/><path d="M8 12h4"/>',
+  patch:'<circle cx="12" cy="12" r="8"/><path d="M9 12h6"/>',
+  label:'<path d="M4 6a2 2 0 0 1 2-2h6.2a2 2 0 0 1 1.4.6l6 6a2 2 0 0 1 0 2.8l-5.4 5.4a2 2 0 0 1-2.8 0l-6-6A2 2 0 0 1 4 11z"/><circle cx="9" cy="9" r="1.3"/>',
+  tape:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+  droplet:'<path d="M12 3.5s6 6.8 6 10.5a6 6 0 0 1-12 0c0-3.7 6-10.5 6-10.5z"/>',
+  pipe:'<path d="M3.5 9h9.5v6H3.5z"/><path d="M13 8h3.5a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H13z"/>',
+  gauge:'<circle cx="12" cy="12" r="8"/><path d="M12 12l3.5-2.5"/><circle cx="12" cy="12" r="1"/>',
+  alarm:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 4.5v1.5M19.5 12H18M12 19.5V18M4.5 12H6"/>',
+  caution:'<path d="M12 4.5 20.5 20H3.5z"/><path d="M12 10.5v3.5"/><circle cx="12" cy="16.8" r=".5"/>',
+  spray:'<rect x="8" y="8.5" width="7" height="11.5" rx="1.5"/><path d="M8 8.5V6.5h4v2"/><path d="M14 5h2.2M14 8h2.2M16.2 3.8v1M16.2 8.2v1"/>',
+  tarp:'<path d="M4 7h16v10H4z"/><circle cx="7" cy="10" r=".7"/><circle cx="17" cy="10" r=".7"/><circle cx="7" cy="14" r=".7"/><circle cx="17" cy="14" r=".7"/>',
+  box:'<rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4 9.5h16"/>'
+};
+function iconKey(p){
+  const n=p.name.toLowerCase(), c=p.cat;
+  if(c==="Lockboxes") return "lockbox";
+  if(c==="Keys") return "key";
+  if(c==="Safety & Detectors") return "alarm";
+  if(c==="Locks & Deadbolts") return (n.includes("deadbolt")&&!n.includes("set")&&!n.includes("combo")) ? "deadbolt" : "knob";
+  if(c==="Padlocks & Hardware") return n.includes("padlock")?"padlock":(n.includes("hole cover")?"patch":"hardware");
+  if(c==="Winterization"){
+    if(n.includes("pipe")||n.includes("hose")) return "pipe";
+    if(n.includes("pressure")) return "gauge";
+    if(n.includes("tape")) return "tape";
+    if(n.includes("label")) return "label";
+    return "droplet";
+  }
+  if(c==="Site & Misc") return n.includes("caution")?"caution":(n.includes("air fresh")?"spray":(n.includes("tarp")?"tarp":"box"));
+  return "box";
+}
+function svgIcon(p){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[iconKey(p)]||ICONS.box}</svg>`;
+}
+function chipHtml(p, i){
+  if(p.img) return `<div class="ico"><img src="${p.img}" alt="" loading="lazy" data-idx="${i}"></div>`;
+  return `<div class="ico">${svgIcon(p)}</div>`;
+}
+
+let supFilter = "all", search = "";
+
+function buildCatalog(){
+  const cont = document.getElementById("catalog");
+  cont.innerHTML = "";
+  const cats = [...new Set(CATALOG.map(p=>p.cat))];
+  let anyShown = false;
+
+  cats.forEach(cat=>{
+    const items = CATALOG.map((p,i)=>({p,i}))
+      .filter(({p})=> p.cat===cat)
+      .filter(({p})=> supFilter==="all" || p.sup===supFilter)
+      .filter(({p})=> p.name.toLowerCase().includes(search));
+    if(!items.length) return;
+    anyShown = true;
+
+    const g = document.createElement("div"); g.className="cat-group";
+    g.innerHTML = `<div class="cat-name">${cat}</div>`;
+    items.forEach(({p,i})=>{
+      const priceStr = p.price>0
+        ? `${p.est?'<span class="est">≈ </span>':''}${money(p.price)}<small>per ${p.unit}</small>`
+        : `<span class="est">quote</span><small>price TBD</small>`;
+      const row = document.createElement("div");
+      row.className = "item"; row.dataset.idx = i;
+      row.innerHTML = `
+        <div class="item-top">
+          <div class="item-main">
+            ${chipHtml(p, i)}
+            <div class="item-text">
+              <div class="item-name">${p.name}</div>
+              <div class="item-meta"><span class="tag ${SUP[p.sup].cls}">${SUP[p.sup].label}</span>${p.keyed?'<span style="color:var(--steel)">key code required</span>':''}</div>
+            </div>
+          </div>
+          <div class="price">${priceStr}</div>
+          <div class="stepper">
+            <button type="button" aria-label="decrease" data-act="dec">−</button>
+            <input type="number" min="0" inputmode="numeric" value="${qty[i]||0}" data-idx="${i}">
+            <button type="button" aria-label="increase" data-act="inc">+</button>
+          </div>
+        </div>
+        ${p.keyed ? keyCodeHtml(i) : ""}`;
+      g.appendChild(row);
+    });
+    cont.appendChild(g);
+  });
+  document.getElementById("emptyMsg").style.display = anyShown ? "none" : "block";
+  refreshActive(); refreshKeycodes();
+}
+
+function setQty(i, v){
+  v = Math.max(0, Math.floor(v||0));
+  if(v) qty[i]=v; else delete qty[i];
+  const inp = document.querySelector(`input[data-idx="${i}"]`);
+  if(inp) inp.value = v;
+  refreshActive(); refreshKeycodes(); updateBar();
+}
+
+function refreshActive(){
+  document.querySelectorAll(".item").forEach(el=>{
+    el.classList.toggle("active", !!qty[el.dataset.idx]);
+  });
+}
+
+// Show a key-code selector only once a keyed item has a quantity
+function refreshKeycodes(){
+  document.querySelectorAll(".keycode").forEach(el=>{
+    const i = el.dataset.kc;
+    el.classList.toggle("show", !!qty[i]);
+    if(!qty[i]) el.classList.remove("missing");
+  });
+}
+
+function totals(){
+  const bySup = {}; let grand=0, count=0;
+  Object.keys(qty).forEach(i=>{
+    const p = CATALOG[i], q = qty[i], line = p.price*q;
+    grand += line; count += q;
+    (bySup[p.sup] = bySup[p.sup] || {items:[], sub:0});
+    bySup[p.sup].items.push({p, q, line, code:codeFor(i)});
+    bySup[p.sup].sub += line;
+  });
+  return {bySup, grand, count};
+}
+
+function updateBar(){
+  const {grand,count,bySup} = totals();
+  document.getElementById("barTotal").textContent = money(grand);
+  document.getElementById("barCount").textContent = count + (count===1?" item":" items");
+  document.getElementById("reviewBtn").disabled = count===0;
+
+  // free-ship meter tracks the supplier closest to (but under) threshold; if all met, show done
+  const T = CONFIG.freeShipThreshold;
+  const subs = Object.entries(bySup);
+  let lbl = `Add ${money(T)} per supplier for free shipping`, pct=0, done=false;
+  if(subs.length){
+    const under = subs.filter(([,v])=>v.sub < T);
+    if(under.length===0){ lbl="Free shipping unlocked on every supplier ✓"; pct=100; done=true; }
+    else{
+      // show the one with the most progress toward free ship
+      under.sort((a,b)=>b[1].sub-a[1].sub);
+      const [s,v]=under[0]; pct=Math.min(100, v.sub/T*100);
+      lbl = `${SUP[s].label}: ${money(T-v.sub)} more for free shipping`;
+    }
+  }
+  document.getElementById("shipLbl").innerHTML = lbl.replace(/(\$[\d.,]+)/g,"<b>$1</b>");
+  const fill = document.getElementById("shipFill");
+  fill.style.width = pct+"%"; fill.classList.toggle("done", done);
+}
+
+/* ---------- review + output ---------- */
+function requiredMissing(){
+  const need = {vName:"name", vPhone:"phone", vAddr:"address", vCity:"city", vState:"state", vZip:"ZIP"};
+  return Object.entries(need).filter(([id])=>!document.getElementById(id).value.trim()).map(([,l])=>l);
+}
+// Keyed items that have a quantity but no code chosen yet
+function missingCodes(){
+  return Object.keys(qty).filter(i=>CATALOG[i].keyed && !codeFor(i)).map(i=>CATALOG[i].name);
+}
+// Highlight the key-code rows that still need a code; returns how many
+function flagMissingCodes(){
+  let n=0;
+  document.querySelectorAll(".keycode").forEach(el=>{
+    const i=el.dataset.kc, bad = qty[i] && CATALOG[i].keyed && !codeFor(i);
+    el.classList.toggle("missing", !!bad); if(bad) n++;
+  });
+  return n;
+}
+
+function buildReview(){
+  const {bySup, grand} = totals();
+  const body = document.getElementById("reviewBody");
+  let html = "";
+  Object.entries(bySup).forEach(([s,v])=>{
+    const free = v.sub >= CONFIG.freeShipThreshold;
+    html += `<div class="sup-block">
+      <div class="sup-head"><span class="tag ${SUP[s].cls}">${SUP[s].label}</span>
+        <span class="name">${SUP[s].label} order</span>
+        <span class="sub">${v.items.length} line${v.items.length>1?"s":""}</span></div>
+      <div class="ol">`;
+    v.items.forEach(({p,q,line,code})=>{
+      const codeTag = p.keyed
+        ? (code ? `<span class="q"> · key ${code}</span>` : `<span class="miss"> · key code needed</span>`)
+        : "";
+      html += `<div class="ol-row"><span><span class="q">${q} ×</span> ${p.name} ${p.est?'<span class="q">(≈)</span>':''}${codeTag}</span>
+        <span class="lt">${money(line)}</span></div>`;
+    });
+    html += `</div><div class="sup-foot"><span class="freeship ${free?'yes':'no'}">
+      ${free?'✓ Free shipping':`${money(CONFIG.freeShipThreshold - v.sub)} from free shipping`}</span>
+      <span>Subtotal ${money(v.sub)}</span></div></div>`;
+  });
+  html += `<div class="grand"><span>Estimated Total</span><span>${money(grand)}</span></div>`;
+  body.innerHTML = html;
+
+  const miss = requiredMissing();
+  const codeMiss = missingCodes();
+  let note = "";
+  if(codeMiss.length) note += `<span class="miss">Pick a key code for: ${codeMiss.join(", ")}.</span> `;
+  if(miss.length) note += `<span class="miss">Add your ${miss.join(", ")}</span> so we know where to ship.`;
+  if(!note) note = `Totals are estimates (≈ items unconfirmed). We confirm exact pricing when the order is placed.`;
+  document.getElementById("missNote").innerHTML = note;
+}
+
+function orderText(){
+  const {bySup, grand} = totals();
+  const g = id => document.getElementById(id).value.trim();
+  const L = [];
+  L.push(`${CONFIG.company.toUpperCase()} — VENDOR SUPPLY ORDER`);
+  L.push(`Order ID: ${currentOrderId}`);
+  L.push(`Date: ${new Date().toLocaleDateString()}`);
+  L.push("");
+  L.push("SHIP TO");
+  L.push(`  ${g("vName")}`);
+  L.push(`  ${g("vAddr")}`);
+  L.push(`  ${g("vCity")}, ${g("vState")} ${g("vZip")}`);
+  L.push(`  Phone: ${g("vPhone")}${g("vEmail")?"   Email: "+g("vEmail"):""}`);
+  if(g("vJob")) L.push(`  Job ref: ${g("vJob")}`);
+  L.push("");
+  Object.entries(bySup).forEach(([s,v])=>{
+    L.push(`${SUP[s].label.toUpperCase()}  (subtotal ${money(v.sub)}${v.sub>=CONFIG.freeShipThreshold?" — free ship":""})`);
+    v.items.forEach(({p,q,line,code})=> L.push(
+      `  ${String(q).padStart(3)} x  ${p.name}${p.est?" (~)":""}${p.keyed?"  [KEY CODE: "+(code||"NEEDED")+"]":""}  @ ${money(p.price)} = ${money(line)}`));
+    L.push("");
+  });
+  L.push(`ESTIMATED TOTAL: ${money(grand)}`);
+  L.push(`(~ = estimated price, confirmed at order placement)`);
+  return L.join("\n");
+}
+
+/* ---------- events ---------- */
+// If a product photo file isn't in the repo (yet), quietly fall back to the icon
+document.getElementById("catalog").addEventListener("error", e=>{
+  if(e.target.tagName!=="IMG") return;
+  const chip = e.target.closest(".ico");
+  if(chip) chip.innerHTML = svgIcon(CATALOG[e.target.dataset.idx]);
+}, true);
+document.getElementById("catalog").addEventListener("click", e=>{
+  const btn = e.target.closest("button[data-act]"); if(!btn) return;
+  const i = btn.closest(".item").dataset.idx;
+  setQty(i, (qty[i]||0) + (btn.dataset.act==="inc"?1:-1));
+});
+document.getElementById("catalog").addEventListener("input", e=>{
+  if(e.target.matches("input[data-idx]") && e.target.type==="number"){ setQty(e.target.dataset.idx, parseInt(e.target.value,10)); return; }
+  if(e.target.matches(".kc-custom")){ customCode[e.target.dataset.idx] = e.target.value; flagMissingCodes(); }
+});
+document.getElementById("catalog").addEventListener("change", e=>{
+  if(!e.target.matches(".kc-select")) return;
+  const i = e.target.dataset.idx;
+  keyCode[i] = e.target.value;
+  const custom = e.target.closest(".keycode").querySelector(".kc-custom");
+  custom.classList.toggle("show", e.target.value==="CUSTOM");
+  if(e.target.value==="CUSTOM") custom.focus();
+  flagMissingCodes();
+});
+document.getElementById("search").addEventListener("input", e=>{ search=e.target.value.toLowerCase().trim(); buildCatalog(); });
+document.getElementById("supFilter").addEventListener("click", e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  supFilter=b.dataset.sup;
+  [...e.currentTarget.children].forEach(c=>c.classList.toggle("on", c===b));
+  buildCatalog();
+});
+
+const overlay = document.getElementById("overlay");
+let currentOrderId = "";
+function newOrderId(){
+  const d=new Date(), p=n=>String(n).padStart(2,"0");
+  return `POV-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+}
+function focusMiss(label){
+  const map={name:"vName",phone:"vPhone",address:"vAddr",city:"vCity",state:"vState",ZIP:"vZip"};
+  const el=document.getElementById(map[label]); if(el) el.focus();
+}
+document.getElementById("reviewBtn").addEventListener("click", ()=>{
+  currentOrderId = newOrderId();
+  const b=document.getElementById("submitBtn"); b.disabled=false; b.textContent="Submit Order to POV";
+  buildReview(); overlay.classList.add("open");
+});
+document.getElementById("closeBtn").addEventListener("click", ()=> overlay.classList.remove("open"));
+overlay.addEventListener("click", e=>{ if(e.target===overlay) overlay.classList.remove("open"); });
+
+function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2200); }
+
+function buildPayload(){
+  const {bySup, grand} = totals();
+  const g = id => document.getElementById(id).value.trim();
+  return {
+    orderId: currentOrderId,
+    name:g("vName"), phone:g("vPhone"), email:g("vEmail"),
+    address:g("vAddr"), city:g("vCity"), state:g("vState"), zip:g("vZip"), jobRef:g("vJob"),
+    mfsSubtotal:(bySup.MFS?bySup.MFS.sub:0).toFixed(2),
+    hgsSubtotal:(bySup.HGS?bySup.HGS.sub:0).toFixed(2),
+    total:grand.toFixed(2),
+    items:orderText()
+  };
+}
+function showConfirmation(){
+  document.getElementById("reviewBody").innerHTML =
+    `<div style="text-align:center; padding:18px 8px">
+       <div style="font-family:'Oswald'; font-size:42px; line-height:1; color:var(--ok)">&#10003;</div>
+       <h2 style="font-family:'Oswald'; text-transform:uppercase; letter-spacing:.04em; margin:10px 0 4px">Order submitted</h2>
+       <p style="margin:0 0 8px">POV has your request and will place it &amp; ship it to you.</p>
+       <p style="font-size:13px; color:var(--steel)">Reference <b style="color:var(--ink)">${currentOrderId}</b></p>
+     </div>`;
+  document.getElementById("missNote").textContent = "Want a receipt for your records? Use Copy or Print below.";
+}
+
+document.getElementById("submitBtn").addEventListener("click", ()=>{
+  const codeMiss=missingCodes();
+  if(codeMiss.length){ flagMissingCodes(); toast("Choose a key code for "+codeMiss[0]); overlay.classList.remove("open");
+    document.querySelector(".keycode.missing .kc-select")?.scrollIntoView({behavior:"smooth", block:"center"}); return; }
+  const miss=requiredMissing();
+  if(miss.length){ toast("Add your "+miss[0]+" first"); overlay.classList.remove("open"); focusMiss(miss[0]); return; }
+  if(!CONFIG.logUrl){ document.getElementById("emailBtn").click(); return; }  // Sheet not set up yet → email backup
+  const btn=document.getElementById("submitBtn"); btn.disabled=true; btn.textContent="Submitting…";
+  fetch(CONFIG.logUrl, {method:"POST", body:JSON.stringify(buildPayload())})
+    .then(()=>{}).catch(()=>{})        // row writes even when the cross-origin response can't be read
+    .finally(()=>{ btn.textContent="Submitted \u2713"; showConfirmation(); toast("Order logged — "+currentOrderId); });
+});
+
+document.getElementById("emailBtn").addEventListener("click", ()=>{
+  const codeMiss=missingCodes();
+  if(codeMiss.length){ flagMissingCodes(); toast("Choose a key code for "+codeMiss[0]); overlay.classList.remove("open");
+    document.querySelector(".keycode.missing .kc-select")?.scrollIntoView({behavior:"smooth", block:"center"}); return; }
+  const miss=requiredMissing();
+  if(miss.length){ toast("Add your "+miss[0]+" first"); overlay.classList.remove("open"); focusMiss(miss[0]); return; }
+  const subj = `Supply order ${currentOrderId} — ${document.getElementById("vName").value.trim()}`;
+  window.location.href = `mailto:${CONFIG.orderEmail}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(orderText())}`;
+});
+document.getElementById("copyBtn").addEventListener("click", async ()=>{
+  try{ await navigator.clipboard.writeText(orderText()); toast("Order copied"); }
+  catch{ toast("Copy not available — use Print"); }
+});
+document.getElementById("printBtn").addEventListener("click", ()=> window.print());
+
+/* init */
+buildCatalog(); updateBar();
+</script>
+</body>
+</html>
